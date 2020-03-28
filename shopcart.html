@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+    @Author zq
+    @Date  2020/3/28 12:15
+    @Version 1.0
+-->
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        div#app {
+            width: 400px;
+            margin: 0 auto;
+        }
+
+        div.title {
+            width: 400px;
+            height: 50px;
+            margin: 0 auto;
+            background: #af153c;
+            font-size: 35px;
+            line-height: 50px;
+            text-align: center;
+            color: #fff7fd;
+        }
+
+        div.total {
+            height: 50px;
+            background: #ffd74c;
+            font-size: 20px;
+            line-height: 50px;
+            text-align: center;
+        }
+
+        div.item {
+            display: flex;
+            height: 100px;
+            width: 400px;
+            box-sizing: border-box;
+            background: #fff7fd;
+            align-items: center;
+            border-bottom: solid black 1px;
+        }
+
+        .change {
+            height: 80px;
+            line-height: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        div.item input {
+            width: 40px;
+            height: 20px;
+            display: inline-block;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        div.item a {
+            /*display: none;*/
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            font-size: 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #d9d9d9;
+            vertical-align: middle;
+            margin: 4px;
+        }
+
+        img.goodsImg {
+            height: 80px;
+            width: 80px;
+            margin-left: 10px;
+        }
+
+        div.name, div.price, .change, .delete {
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        .delete {
+            color: #ff0c00;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        button {
+            margin-left: 100px;
+        }
+
+
+    </style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <div id="app">
+        <my-cart></my-cart>
+    </div>
+    <script>
+        var CartTitle = {
+            props: ['tUsername'],
+            template: `
+            <div class="title">{{tUsername}}的购物车</div>
+            `
+        }
+
+        var CartList = {
+            props: ["tGoods"],
+            template: `
+            <div>
+                <div class="item" :key="item.id" v-for="item in tGoods">
+                    <img class="goodsImg" :src="item.img">
+                    <div class="name">{{item.name}}</div>
+                    <div class="price">{{item.price}}</div>
+                    <div class="change">
+                        <a @click.prevent="minus(item)">-</a>
+                        <input type="text" :value="item.num" @blur="changeNum(item,$event)">
+                        <a  @click.prevent="add(item)">+</a>
+                    </div>
+                    <div class="delete" @click="del(item.id)">x</div>
+                </div>
+            </div>
+            `,
+            methods: {
+                del: function (id) {
+                    this.$emit('cart-del', id);
+                },
+                add: function (item) {
+                    item.num += 1;
+                },
+                minus: function (item) {
+                    if(item.num <=1){
+                        return;
+                    }
+                    item.num -= 1;
+                },
+                changeNum:function (item,event) {
+                    console.log(event);
+                    console.log(item.id+"---"+event.target.value+"---"+item.num);
+                    item.num=event.target.value;
+                }
+            }
+        }
+
+        var CartTotal = {
+            props: ['tGoods'],
+            template: `
+            <div class="total">
+                <span>总价：{{total}}</span>
+                <button>结算</button>
+            </div>
+            `,
+            computed: {
+                total: function () {
+                    var t = 0;
+                    this.tGoods.forEach(item => {
+                        t += item.price * item.num;
+                    });
+                    return t;
+                }
+            }
+        }
+
+        //假数据
+        var fakeMsg = [
+            {
+                id: 1,
+                name: '涡轮电钻',
+                img: 'img/img1.png',
+                price: 188,
+                num: 1
+            },
+            {
+                id: 2,
+                name: '梅花扳手',
+                img: 'img/img2.png',
+                price: 108,
+                num: 1
+            },
+            {
+                id: 3,
+                name: '棘轮扳手',
+                img: 'img/img3.png',
+                price: 128,
+                num: 1
+            }
+        ];
+
+        //购物车全局组件，包含三个子组件
+        Vue.component('my-cart', {
+            data: function () {
+                return {
+                    username: 'zq',
+                    goods: fakeMsg
+                }
+            },
+            template: `
+            <div class="cart">
+                <cart-title :tUsername="username"></cart-title>
+                <cart-list :tGoods="goods" @cart-del="delListener($event)"></cart-list>
+                <cart-total :tGoods="goods"></cart-total>
+            </div>
+            `,
+            components: {
+                'cart-title': CartTitle,
+                'cart-list': CartList,
+                'cart-total': CartTotal,
+            },
+            methods: {
+                delListener: function (id) {
+                    console.log(id);
+                    let index = this.goods.findIndex(item => {
+                        return item.id == id;
+                    })
+                    this.goods.splice(index, 1);
+                }
+            }
+        });
+
+        var vm = new Vue({
+            el: '#app',
+            data: {},
+            method: {}
+        });
+    </script>
+
+</body>
+</html>
